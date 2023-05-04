@@ -66,3 +66,7 @@ from [unorules.com](https://www.unorules.com/):
   - Wild/Wild Draw Four – 50 points each
   - Wild Swap Hands/Wild Customizable cards – 40 points each
 These point values will be tracked per player, and a winner is declared at a winning point value (default is 500)
+
+# Random Stuff
+
+CPU Names were taken from: From https://www.keeplaughingforever.com/deez-nuts-jokes
