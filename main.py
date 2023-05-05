@@ -6,7 +6,9 @@
 # TODO: Make class structure for Player, Cards, Deck and Game Manager
 import json
 import random
+import time
 import sys
+import os
 #import curses   
 import colorama
 
@@ -17,9 +19,23 @@ class Card:
     def __init__(self,value,color):
         self.value = value
         self.color = color
+        self.colorama = None
+        match color:
+            case "blue":
+                self.colorama = colorama.Fore.BLUE + f'{value}'
+            case "yellow":
+                self.colorama = colorama.Fore.YELLOW + f'{value}'
+            case "red":
+                self.colorama = colorama.Fore.RED + f'{value}'
+            case "green":
+                self.colorama = colorama.Fore.GREEN + f'{value}'
+            case "black":
+                self.colorama = f'{value}'
+            
     
     def printCard(self):
         print(f'I am a {self.color} colored {self.value} card')
+
 
 # Holds all 108 cards or whatever it is
 class Deck:
@@ -79,6 +95,9 @@ class GameManager:
 
     def __init__(self,*args):
         
+        colorama.init(autoreset=True)
+
+
         self.Deck = Deck()
         self.Discard = Deck(discard=True)
         
@@ -89,6 +108,8 @@ class GameManager:
         self.playercount = 4
         self.Timer = 60
         self.TurnCount = 0  # if 0 = infinite, else -1 per turn
+        self.Turns = 1  # if 0 = infinite, else -1 per turn
+
         self.players = []
         self.CardCount = 7
 
@@ -125,10 +146,35 @@ class GameManager:
         #     print(f'{player.name} has:')
         #     print([card.value for card in player.hand])
 
-    def turn(self,Player):
-        timer = self.Timer
-        while timer != 0:
-            timer -=1
+    # Draw class variables - Turn counter, Time
+    def DrawGlobals(self):
+        print(f'Turn #:{self.TurnCount}')
+        print(f'Time Left: {int(time.time())}')
+        
+    def DrawOpponents(self,Player):
+        for player in self.players:
+            if player == Player: continue   # skip current player
+            endstring = f'{player.name}: |{len(player.hand)}|'
+            if player.UNO: endstring += ' UNO! '
+            print(endstring)
+        
+    def DrawHand(self,Player):
+        finalString = ''
+        for i,card in enumerate(Player.hand):
+            print(card.colorama,f'[{i+1}]')
+            colorama.Fore.RESET
+            colorama.Back.RESET
+
+
+    def Turn(self,Player):
+        os.system('cls')
+        self.DrawGlobals()
+        print('------------------------')
+        self.DrawOpponents(Player)
+        print('------------------------')
+        self.DrawHand(Player)
+
+
             
 
     # turns
@@ -145,3 +191,5 @@ if __name__ == "__main__":
 
     GM = GameManager(settingsJson)
     GM.GameSetup()
+    #GM.players[1].UNO = True
+    GM.Turn(GM.players[0])
