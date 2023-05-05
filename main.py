@@ -146,6 +146,8 @@ class GameManager:
         #     print(f'{player.name} has:')
         #     print([card.value for card in player.hand])
 
+    # /_____________________________/TURN DRAWING SECTION/_____________________________/
+
     # Draw class variables - Turn counter, Time
     def DrawGlobals(self):
         print(f'Turn #:{self.TurnCount}')
@@ -165,18 +167,20 @@ class GameManager:
             colorama.Fore.RESET
             colorama.Back.RESET
 
-
+    # Draws, then gets input
     def Turn(self,Player):
         os.system('cls')
         self.DrawGlobals()
         print('------------------------')
         self.DrawOpponents(Player)
         print('------------------------')
+        print(f'Current Top Card: {self.Discard.cards[-1].colorama}')
+        print('------------------------')
         self.DrawHand(Player)
-
+        print('------------------------')
+        input('please give some FUCKING INPUT: \n')
 
             
-
     # turns
     def GameLoop():
         pass
@@ -191,5 +195,5 @@ if __name__ == "__main__":
 
     GM = GameManager(settingsJson)
     GM.GameSetup()
-    #GM.players[1].UNO = True
+    GM.players[1].UNO = True
     GM.Turn(GM.players[0])
