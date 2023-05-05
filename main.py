@@ -6,7 +6,9 @@
 # TODO: Make class structure for Player, Cards, Deck and Game Manager
 import json
 import random
-import curses   
+import sys
+#import curses   
+import colorama
 
     
 # init value changes the type of card (0-9 are normal, 10 - skip, 11 - Reverse, 12 - +2, 13 - +4 wild, 14 - wild)
@@ -23,23 +25,31 @@ class Card:
 class Deck:
     colors = ["blue","yellow","red","green"]
     
-    def __init__(self):
-        self.cards = []
-        for color in self.colors:
-            self.cards.append(Card(0,color))
+    def __init__(self,discard=False):
+        if not discard:
+            self.cards = Deck.GenerateDeck() # 920 bits total - 48 per cardish
+            self.Shuffle()
+        else:
+            self.cards = [] # empty discard pile
+
+        
+    def GenerateDeck():
+        li = []
+        for color in Deck.colors:   
+            li.append(Card(0,color))
             for i in range(2):  # for each color type (blue,yellow,red,green)
                 for j in range(1,10):  # 0-9
-                    self.cards.append(Card(j,color))
-                self.cards.append(Card("Reverse",color))
-                self.cards.append(Card("Skip",color))
-                self.cards.append(Card("+2",color))
-            self.cards.append(Card("wild","black"))
-            self.cards.append(Card("+4","black"))
-        self.cards.sort(reverse=True,key=lambda Card: Card.color)
+                    li.append(Card(j,color))
+                li.append(Card("Reverse",color))
+                li.append(Card("Skip",color))
+                li.append(Card("+2",color))
+            li.append(Card("wild","black"))
+            li.append(Card("+4","black"))
+        #li.sort(reverse=True,key=lambda Card: Card.color)
+        return li
 
     def Shuffle(self):
         random.shuffle(self.cards)
-
 
     def printCards(self):
         for card in self.cards:
@@ -48,40 +58,82 @@ class Deck:
     def printDeckSize(self):
         print(len(self.cards))
 
+    # Return the top level Card
+    def Draw(self):
+        returncard = self.cards.pop()
+        print(f'drew {returncard.value}')
+        return returncard
 
 # Has an AI setting so it can be used as a CPU Opponent
 class Player:
     
     def __init__(self,name,type="CPU"):
         self.name = name
-        self.type = type #CPU or Player
+        self.type = type # CPU or Player - Used to automate CPU gameplay by GM
+        self.hand = []  # cards held
+        self.UNO = False    # if true, they think they have a winning hand
 
 class GameManager:
     
     # This will apply any settings on initialization, which will occur before a game starts in a main menu. (for now we will use a settings.txt). The data collected there will be used to create a GameManager that applies the settings given in the inital setup stage.
 
     def __init__(self,*args):
+        
         self.Deck = Deck()
+        self.Discard = Deck(discard=True)
+        
+        # Dynamic Values
+        self.LastTurn = None    # The display message of the last turn taken in format : Last turn: 'player' played 'Card'
+
         # Default Values
         self.playercount = 4
         self.Timer = 60
-        self.TurnCount = 0  # 0 = infinite
+        self.TurnCount = 0  # if 0 = infinite, else -1 per turn
         self.players = []
+        self.CardCount = 7
+
+        
         # If a settings json is present, then it will use those values instead
-        for arg in args:
-            self.playercount = arg['Players']
-            self.Timer = arg['Timer']
-            self.TurnCount = 0  # 0 = infinite
-            for i in range(self.playercount):
-                name = arg['CPUNAMES'][random.randint(0,len(arg['CPUNAMES'])-1)]
-                if name in self.players:
-                    name = arg['CPUNAMES'][random.randint(0,len(arg['CPUNAMES'])-1)] # Re roll name
-                self.players.append(Player(name))
+        try:
+            for arg in args:
+                self.playercount = arg['Players']
+                self.Timer = arg['Timer']
+                self.TurnCount = 0  # 0 = infinite
+                
+                for i in range(self.playercount):
+                    name = arg['CPUNAMES'][random.randint(0,len(arg['CPUNAMES'])-1)]
+                    if name in self.players:
+                        name = arg['CPUNAMES'][random.randint(0,len(arg['CPUNAMES'])-1)] # Re roll name
+                    self.players.append(Player(name))
+        except:
+            print('No settings file')
         if len(self.players) == 0:
             for i in range(self.playercount):
                 self.players.append(Player(input(f"please give us player {i}'s name")))
-        
         print([player.name for player in self.players])
+    
+    # Distibute cards to players
+    def GameSetup(self):
+        for i in range(self.CardCount): # distribute starting hand
+            for player in self.players: # for each player
+                player.hand.append(self.Deck.Draw())
+        # place the 1st discard card
+        self.Discard.cards.append(self.Deck.Draw())
+
+        # print(f'Discard top = {self.Discard.cards[0].value}')        
+        # for player in self.players:
+        #     print(f'{player.name} has:')
+        #     print([card.value for card in player.hand])
+
+    def turn(self,Player):
+        timer = self.Timer
+        while timer != 0:
+            timer -=1
+            
+
+    # turns
+    def GameLoop():
+        pass
 
 
 
@@ -92,9 +144,4 @@ if __name__ == "__main__":
 
 
     GM = GameManager(settingsJson)
-    #GM.Deck.printCards()
-    GM.Deck.Shuffle()
-    GM.Deck.printCards()
-    GM.Deck.printDeckSize()
-
-
+    GM.GameSetup()
