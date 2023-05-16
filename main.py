@@ -169,18 +169,31 @@ class GameManager:
         if self.Discard.GetTopCard().color == 'black':
             self.Discard.GetTopCard().color = random.choice(["blue","yellow","red","green"])
             self.Discard.GetTopCard().colorama = self.Discard.GetTopCard().SetColorama(self.Discard.GetTopCard().color)
+        
+        # Unique Cards = ["Reverse","Skip","+2","+4","wild"]
+        if self.Discard.GetTopCard().value == "Reverse":
+            self.Clockwise = not self.Clockwise
+        if self.Discard.GetTopCard().value == "Skip":
+            self.playerIndex +=1
+        if self.Discard.GetTopCard().value == "+2":
+            self.drawstate = True
+            self.DrawStack += 2
+        if self.Discard.GetTopCard().value == "+4":
+            self.drawstate = True
+            self.DrawStack += 4
+        
 
     # /_____________________________/TURNS/_____________________________/
 
     # Draw class variables - Turn counter, Time
     def DrawGlobals(self):
-        print(f'Turn #:{self.TurnCount}')
-        print(f'Time Left: {int(time.time())}')
+        print(f'Turn: {self.TurnCount}')
+        # print(f'Time Left: {int(time.time())}')
         
     def DrawOpponents(self,Player):
-        for player in self.players:
+        for i,player in enumerate(self.players):
             if player == Player: continue   # skip current player
-            endstring = f'{player.name}: |{len(player.hand)}|'
+            endstring = f'{i+1}//{player.name}: |{len(player.hand)}|'
             if player.UNO: endstring += ' UNO! '
             print(endstring)
         
@@ -237,15 +250,20 @@ class GameManager:
             Card.colorama = Card.SetColorama(Card.color)
             return True
 
+        # DRAW CHECK
+        print(Card.value)
+        if Card.value == "+2":
+            self.DrawStack += 2
+        if Card.value == "+4":  
+            self.DrawStack += 4
+        if Card.value != "+4" and Card.value != "+2":
+            self.DrawStack = 0
+
         # 1ST CARD
         if First:
             # SAME VALUES
             if Card.value == CurrentDiscard.value or Card.color == CurrentDiscard.color:    # if same value or color
                 # This will be reset if not ended on a +2/4
-                if Card.value == "+2" :
-                    self.DrawStack += 2
-                if Card.value == "+4":  
-                    self.DrawStack += 4
                 return True
             
         # multiple cards per turn
@@ -271,7 +289,7 @@ class GameManager:
             else:
                 # UNIQUE CARDS
                 if Card.value == CurrentDiscard.value:
-                    return True
+                    return True 
 
 
 
@@ -296,21 +314,25 @@ class GameManager:
     #       -- current player = after player who drew
 
     def drawTurn(self,Player):
-        
-
         # while in loop
+        
         while self.drawstate:
-            total = self.DrawStack
+            os.system('cls')
             playerValues = [card.value for card in Player.hand]
             if "+2" not in playerValues and "+4" not in playerValues:
-                print('You cannot stack and must draw')
+                print(f'{Player.name} cannot stack and must draw')
                 input('Press enter to continue')
+                
+                self.DrawCards(Player,self.DrawStack)
+
                 self.drawstate = False
+                self.DrawStack = 0
                 return
                 
-            os.system('cls')
+            lol = '------------------------'
+            print(lol + " DRAW " + lol)
+
             print(f'Player: {Player.name}')
-            
             
             print(f'Stack Card: {self.Discard.cards[-1].colorama}')
             print(f'Draw Amount: {self.DrawStack}')
@@ -320,17 +342,22 @@ class GameManager:
             print('------------------------')
             choice = input('play stack card: [#], or End Turn and draw[E]').upper()
 
-            if not self.ValidPlay(choice,Player) or choice == 'E':
-                print(f"{colorama.Fore.MAGENTA}{Player.name} drew {total} cards :({colorama.Style.RESET_ALL}")
-                self.DrawCards(Player,total)
+            # stack size is (SHOULD) updated per validplay call
+            if choice == 'E':
+                print(f"{colorama.Fore.MAGENTA}{Player.name} draws {self.DrawStack} cards{colorama.Style.RESET_ALL}")
+                self.DrawCards(Player,self.DrawStack)
+                self.drawstate = False
+                self.DrawStack = 0
             else:
                 try:
-                    if Player.hand[int(choice)].value == "+2" or Player.hand[int(choice)].value == "+4" :
-                        self.Discard.append(Player.hand.pop(int(choice)))
+                    playerval = Player.hand[int(choice)-1].value
+                    if playerval == "+2" or playerval == "+4" :
+                        print(playerval[1])
+                        self.DrawStack+=int(playerval[1])  # Add value to stack
+                        self.Discard.cards.append(Player.hand.pop(int(choice)-1))
                 except IndexError:
                     print('invalid choice')
             input('Press enter to continue')
-
             return
                 
 
@@ -339,14 +366,15 @@ class GameManager:
     def Turn(self,Player):
         CardsPlayed = 0
 
+        DrawPlay = False
         EndTurn = False
-
+        currentUno = False
         # unique instance, so return when finished
 
         if self.drawstate == True:
             self.drawTurn(Player)
             return
-
+  
         if self.skip:
             self.skip = False
             return
@@ -354,7 +382,6 @@ class GameManager:
         #Player.UNO = True
         while not EndTurn:
             os.system('cls')
-            #print([card.value for card in Player.hand])
             self.DrawGlobals()
             print('------------------------')
             self.DrawOpponents(Player)
@@ -368,12 +395,19 @@ class GameManager:
             Choice = input('').upper()  # all inputs in upper, so i dont have to worry about case issues
 
             if self.ValidPlay(Choice,Player,CardsPlayed == 0):
+                print(str(Player.hand[int(Choice)-1].value))
+                time.sleep(2)
                 # will only run if card is playble
-                self.Discard.cards.append(Player.hand.pop(int(Choice)-1)) # add card to top of discard pileq
+                if "+" in str(Player.hand[int(Choice)-1].value):
+                    DrawPlay = True
+                else:
+                    DrawPlay = False
+                self.Discard.cards.append(Player.hand.pop(int(Choice)-1)) # add card to top of discard pile
                 CardsPlayed +=1
                 continue                
             elif Choice == 'UNO!':
                 Player.UNO = True
+                currentUno = True
                 continue
             # Win Condition
             elif Choice == 'E':
@@ -381,10 +415,12 @@ class GameManager:
                 #["Reverse","Skip","+2","+4","wild"]
                 print(self.Discard.GetTopCard().value)
                 # START DRAW STACK
-                if self.Discard.GetTopCard().value == "+2" or self.Discard.GetTopCard().value == "+4":
-                    self.drawstate = True
-                else:
-                    self.DrawStack = 0
+                try:
+                    if "+" in self.Discard.GetTopCard().value:
+                        if DrawPlay:    # needs to check it was played this turn
+                            self.drawstate = True
+                except:
+                    pass
                 # REVERSE DIRECTION
                 if self.Discard.GetTopCard().value == "Reverse":
                     self.Clockwise = not self.Clockwise
@@ -394,16 +430,16 @@ class GameManager:
                 
                 print('Ending Turn')
                 if Player.UNO:
-                    if len(Player.hand) == 0:
-                        print(f'{Player.name} Won :)')
-                        sys.exit()
-                        #TODO
-                        #self.WinningPoints()
-                    else:
-                        print('You did not win despite claiming UNO >:(')
-                        print(f'{Player.name} Draws 2')
-                        self.DrawCards(Player,2)
-                elif CardsPlayed == 0:
+                    if currentUno is False:
+                        if len(Player.hand) == 0:
+                            print(f'{Player.name} Won :)')
+                            input('Press enter to Quit.')
+                            sys.exit()
+                        else:
+                            print('You did not win despite claiming UNO >:(')
+                            print(f'{Player.name} Draws 2')
+                            self.DrawCards(Player,2)
+                elif CardsPlayed == 0 or len(Player.hand) == 0:
                     Player.hand.append(self.Deck.Draw())
             else:
                 print('Invalid Choice')
@@ -419,13 +455,16 @@ class GameManager:
     
     # turn loop
     def GameLoop(self):
+        
+        self.GameSetup()    # gets stuff ready 2 game
 
         Gaming = True
         while Gaming:
             self.Turn(self.players[self.playerIndex])
             self.RotatePlayers()
             self.TurnCount +=1
-            
+            os.system('cls')
+            input(f'Press enter for {self.players[self.playerIndex].name} to begin')
             # Only top card gets applied unless a draw
             # if draw, then apply as many draws from the top of the discard until its no longer a draw card
 
@@ -440,5 +479,4 @@ if __name__ == "__main__":
 
 
     GM = GameManager(settingsJson)
-    GM.GameSetup()
     GM.GameLoop()
