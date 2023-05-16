@@ -1,4 +1,1 @@
 colorama==0.4.6
-
-# Not needed
-windows-curses==2.3.1

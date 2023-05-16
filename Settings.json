@@ -1,6 +1,5 @@
 {
-    "Players":3,
-    "Timer": 60,
+    "Players":4,
     "TurnCount": 0,
     "CPUNAMES": [
         "Wendys",
