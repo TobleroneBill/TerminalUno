@@ -48,7 +48,6 @@ class Card:
                 returnColorama = f'{self.value}'
         return returnColorama
 
-
 # Holds all 108 cards
 class Deck:
     colors = ["blue","yellow","red","green"]
@@ -92,12 +91,10 @@ class Player:
         self.UNO = False    # if true, they think they have a winning hand
 
 class GameManager:
-    
-    # This will apply any settings on initialization, which will occur before a game starts in a main menu. (for now we will use a settings.json). The data collected there will be used to create a GameManager that applies the settings given in the inital setup stage.
 
     # /_____________________________/SETUP/_____________________________/
-
-
+    
+    # This will apply any settings on initialization, which will occur before a game starts in a main menu. (for now we will use a settings.json). The data collected there will be used to create a GameManager that applies the settings given in the inital setup stage.
     def __init__(self,*args):
         
         colorama.init(autoreset=True)   # resets all colorama calls after use
@@ -123,7 +120,6 @@ class GameManager:
         self.players = []
         self.CardCount = 7
 
-        
         # If a settings json is present, then it will use those values instead
         try:
             for arg in args:
@@ -140,7 +136,6 @@ class GameManager:
         if len(self.players) == 0:
             for i in range(self.playercount):
                 self.players.append(Player(input(f"please give us player {i}'s name: ")))
-        #print([player.name for player in self.players])
     
     # Distibute cards to players
     def GameSetup(self):
@@ -166,7 +161,6 @@ class GameManager:
         if self.Discard.GetTopCard().value == "+4":
             self.drawstate = True
             self.DrawStack += 4
-        
 
     # /_____________________________/TURNS/_____________________________/
 
@@ -182,12 +176,10 @@ class GameManager:
             print(endstring)
         
     def DrawHand(self,Player):
-        finalString = ''
         for i,card in enumerate(Player.hand):
             print(card.colorama,f'[{i+1}]')
             colorama.Fore.RESET
             colorama.Back.RESET
-
 
     # if draw pile is empty, move discard pile into draw pile execpt the top and shuffle draw
     def ShuffleDraw(self):
@@ -234,17 +226,14 @@ class GameManager:
             Card = Player.hand[int(Choice)-1]
         except (IndexError,ValueError):
             return False
-        
+
         # if a wild card
         if self.SetWild(Card): return True
-
-
 
         # 1ST CARD
         if First:
             # SAME VALUES
             if Card.value == CurrentDiscard.value or Card.color == CurrentDiscard.color:    # if same value or color
-                # This will be reset if not ended on a +2/4
                 return True
             
         # multiple cards per turn
@@ -257,10 +246,8 @@ class GameManager:
                 minRange = CurrentDiscard.value-1
                 maxRange = CurrentDiscard.value+1
                 # Definitely a better way for this
-                if minRange < 0:
-                    minRange = 0
-                if maxRange > 9:
-                    maxRange = 0
+                if minRange < 0: minRange = 0
+                if maxRange > 9: maxRange = 0
                 matches = [minRange,CurrentDiscard.value,maxRange]
                 if Card.value in matches and Card.color == CurrentDiscard.color:
                     return True
@@ -270,8 +257,6 @@ class GameManager:
                 # UNIQUE CARDS
                 if Card.value == CurrentDiscard.value:
                     return True 
-
-
 
     # switch players when ending turn 
     def RotatePlayers(self):
@@ -331,15 +316,8 @@ class GameManager:
 
     # Draws, then gets input
     def Turn(self,Player):
-        CardsPlayed = 0
-
-        DrawPlay = False
-        SkipPlay = False
-
-        EndTurn = False
-        currentUno = False
+        
         # unique instance, so return when finished
-
         if self.drawstate == True:
             self.drawTurn(Player)
             return
@@ -347,8 +325,18 @@ class GameManager:
         if self.SkipStack > 0:
             self.SkipStack -=1
             return
+        
+        # only runs if above isnt true
+        CardsPlayed = 0
 
-        #Player.UNO = True
+        DrawPlay = False
+        SkipPlay = False
+
+        EndTurn = False
+        currentUno = False
+        
+
+
         while not EndTurn:
             os.system('cls')
             self.DrawGlobals()
@@ -436,9 +424,8 @@ class GameManager:
         Gaming = True
         while Gaming:
             input(f'Press enter for {self.players[self.playerIndex].name} to begin')            
-            self.RotatePlayers()
             self.Turn(self.players[self.playerIndex])
-
+            self.RotatePlayers()
             self.TurnCount +=1
             os.system('cls')
             
