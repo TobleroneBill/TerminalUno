@@ -1,10 +1,13 @@
 # Python teminal Uno
 
+updated 17/5/2023 
+
 ## Outline
 
-This is just basic uno, with a real time turn counter using some kind of time module, Curses for the card types and AI opponents or player opponents (up to 10). This is for a codecaedemy project, since I am trying to speedrun its python course (employers hopefully care :/)
+This is just basic uno using the colorama module for some basic sprucing up of the temrinal. This is local play only
 
-If it goes particularly well, I will look into P2P networking, because thats supposed to be the easiest networking method, and it would be pretty fun to 1V1 friends and stuff
+Blog post explaining code:
+https://medium.com/@billseaton19/things-are-harder-than-you-think-91ed35de7e53
 
 ### Uno Features
 
@@ -19,31 +22,33 @@ If it goes particularly well, I will look into P2P networking, because thats sup
       - 4 Wild cards (can be placed on anything and changes the color)
       - 4 Draw four cards - The same as wild, but makes next player draw 4
     
-    - Real time turn Timer
     - Turn Counter
-    - Colored terminal for cards (will be using curse)
-    - A settings menu, so main player can set turn timer, counter and anything else that should be customizable
+    - Colored terminal for cards using colorama
+    - Card stacking
+      - Blue 5 can have any other 5 played on top, or a blue 4/6
 
 ### The Deck Visualsed
+
 <image src="README\Uno_Card.jpg" width=500>
 
 ### Classes
 
+
+
 - Deck - will hold all instances of the cards that get drawn, with the methods:
   - Draw: Draw a card from its big array of Card class cards
   - Shuffle: when all the cards have been drawn into a place Pile (probably stored in the Game Manager), it will collect all the cards back (except the last played card)
-- Cards (will probably use inheritance for each type of card). Game manager will handle thier actual logic. Each card will hold:
-  - Value (0-9,,+2,wild,+4 wild)
+- Cards ~~(will probably use inheritance for each type of card)~~. Game manager will handle thier actual logic. Each card will hold:
+  - Value (0-9,reverse,skip,+2,wild,+4)
 - Game manager - Will handle main game logic, such as:
   - Player Turns
-  - Restricting turn time
-  - Checking turn count (and ending the game if exceeding the limit if set)
+  - Checking turn count
   - Displaying status messages
   - Switching between Menu and Game
   - Displaying the information in a nice way
-- Player/AI - If Ai, will automatically play turns (could get complicated, so will probably opt for random but legal moves).
+- Player ~~/AI - If Ai, will automatically play turns (could get complicated, so will probably opt for random but legal moves).~~
   - Hold a Hand of drawn cards stored in a list
-  - Status effect attribute (such as skip a go, or draw) so the AI knows if it needs to +2. This will allow it to stack if the setting is used.
+  - Status effect attribute (such as skip a go, or draw) ~~so the AI knows if it needs to +2. This will allow it to stack if the setting is used.~~
 
 ### Actual Uno Rules
 
